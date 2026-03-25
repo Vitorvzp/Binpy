@@ -1,0 +1,121 @@
+{
+  "name": "binpy",
+  "displayName": "BinPy Language Support",
+  "description": "Syntax highlighting, hover decoding and tools for the BinPy esoteric language (.binpy files)",
+  "version": "1.0.0",
+  "publisher": "binpy-dev",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Formatters"
+  ],
+  "keywords": [
+    "binpy",
+    "binary",
+    "esolang",
+    "python",
+    "obfuscation"
+  ],
+  "icon": "images/icon.png",
+  "activationEvents": [
+    "onLanguage:binpy"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "binpy",
+        "aliases": [
+          "BinPy",
+          "binpy"
+        ],
+        "extensions": [
+          ".binpy",
+          ".binhtml"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/icon.png",
+          "dark": "./images/icon.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "binpy",
+        "scopeName": "source.binpy",
+        "path": "./syntaxes/binpy.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "binpy.decodeFile",
+        "title": "BinPy: Decode File to Python",
+        "category": "BinPy"
+      },
+      {
+        "command": "binpy.decodeSelection",
+        "title": "BinPy: Decode Selection",
+        "category": "BinPy"
+      },
+      {
+        "command": "binpy.encodeSelection",
+        "title": "BinPy: Encode Selection to Binary",
+        "category": "BinPy"
+      },
+      {
+        "command": "binpy.showDecodedPreview",
+        "title": "BinPy: Show Decoded Preview",
+        "category": "BinPy"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceExtname == .binpy",
+          "command": "binpy.decodeFile",
+          "group": "binpy@1"
+        },
+        {
+          "when": "editorHasSelection && resourceExtname == .binpy",
+          "command": "binpy.decodeSelection",
+          "group": "binpy@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "binpy.decodeFile",
+        "key": "ctrl+shift+b d",
+        "when": "resourceExtname == .binpy"
+      },
+      {
+        "command": "binpy.showDecodedPreview",
+        "key": "ctrl+shift+b p",
+        "when": "resourceExtname == .binpy"
+      }
+    ],
+    "configuration": {
+      "title": "BinPy",
+      "properties": {
+        "binpy.showDecorationOnHover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show decoded character on hover"
+        },
+        "binpy.showByteIndexInStatus": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show byte index and total byte count in status bar"
+        },
+        "binpy.alternateByteColors": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight bytes with alternating colors for readability"
+        }
+      }
+    }
+  }
+}

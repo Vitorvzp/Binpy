@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "BinPy",
+  "scopeName": "source.binpy",
+  "patterns": [
+    { "include": "#byte-odd" },
+    { "include": "#byte-even" },
+    { "include": "#separator" },
+    { "include": "#invalid" }
+  ],
+  "repository": {
+    "byte-odd": {
+      "comment": "Bytes in odd positions (1st, 3rd, 5th…) - highlighted as keyword",
+      "match": "(?<=[\\s]|^)([01]{8})(?=[\\s]|$)",
+      "name": "keyword.other.byte.binpy"
+    },
+    "byte-even": {
+      "comment": "Continuous 8-bit groups (no spaces) matched pairwise",
+      "match": "[01]{8}",
+      "name": "string.unquoted.byte.binpy"
+    },
+    "separator": {
+      "comment": "Spaces used as byte separators",
+      "match": " +",
+      "name": "punctuation.separator.binpy"
+    },
+    "invalid": {
+      "comment": "Any character that is not 0 or 1",
+      "match": "[^01\\s\\n\\r]",
+      "name": "invalid.illegal.char.binpy"
+    }
+  }
+}
