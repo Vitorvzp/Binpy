@@ -1,131 +1,62 @@
-<div align="center">
+# BinPy
 
-# 🔢 BinPy
+🟦 `> Python em bits · ferramentas para leitura e execução`
 
-**Uma linguagem de programação esotérica onde o código-fonte é binário puro — mas o motor por trás é Python.**
+Experimento de linguagem esotérica que representa código Python com dígitos binários. O compilador e o interpretador são escritos em **Python**; a extensão para VS Code é escrita em **JavaScript**.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![VSCode Extension](https://img.shields.io/badge/VSCode-Extension%20Included-007ACC?logo=visualstudiocode)](./binpy-extension)
+O formato transforma caracteres do código em números binários e os reconstrói antes de executar Python. É uma representação reversível para experimentação e ofuscação, sem criptografia ou isolamento de execução.
 
-</div>
+## Arquivos do projeto
 
----
+| Arquivo | Função |
+| --- | --- |
+| [compilator.py](./compilator.py) | Lê um arquivo de texto e grava os bits em um `.binpy` com o mesmo nome base. |
+| [interpreter.py](./interpreter.py) | Reconstrói o texto em grupos de oito bits e o executa com `exec()`. |
+| [binpy-extension](./binpy-extension) | Código-fonte da extensão de edição para VS Code. |
 
-## O que é BinPy?
+Esta árvore não inclui aplicação Flask, servidor, templates, `app.py` ou arquivos `.binpy` de exemplo. Esses componentes não são necessários para usar as duas ferramentas de linha de comando.
 
-BinPy é uma [Esolang](https://en.wikipedia.org/wiki/Esoteric_programming_language) que aceita **apenas código binário ASCII de 8 bits** como sintaxe. Por baixo, todo bit é convertido de volta a Python e executado normalmente.
+## Uso local
 
-```
-print("Hello, World!")  →  01110000 01110010 01101001 01101110 01110100 00101000
-                             00100010 01001000 01100101 01101100 01101100 01101111
-                             00101100 00100000 01010111 01101111 01110010 01101100
-                             01100100 00100010 00101001
-```
+Requer Python 3. Os dois scripts usam apenas a biblioteca padrão; não há pacote de dependências Python para instalar.
 
-O uso principal é **ofuscar código Python** — um servidor Flask pode servir toda sua lógica em binário, tornando a leitura do código-fonte humanamente impraticável.
+Crie um arquivo `exemplo.py` com código conhecido e caracteres ASCII, por exemplo:
 
----
-
-## Estrutura do Projeto
-
-```
-BinLoader/
-├── interpreter.py        ← Runtime: decodifica .binpy e executa com exec()
-├── compilator.py         ← Compilador: converte .py → .binpy
-├── app.py                ← Bootstrap Loader (ponto de entrada do servidor)
-├── app_logic.py          ← Lógica Flask original (remover do servidor em produção)
-├── app.binpy             ← app_logic.py compilado (ofuscado)
-├── static/style.css
-├── templates/
-└── binpy-extension/      ← Extensão VSCode para suporte à linguagem
+```python
+print("Hello, World!")
 ```
 
----
+Na raiz do repositório:
 
-## Uso Rápido
-
-### 1. Compilar Python → BinPy
-
-```bash
-python compilator.py meu_script.py
-# Gera: meu_script.binpy
+```sh
+python compilator.py exemplo.py
+python interpreter.py exemplo.binpy
 ```
 
-### 2. Executar um arquivo `.binpy`
+O primeiro comando cria ou sobrescreve `exemplo.binpy` na mesma pasta do arquivo de entrada. O segundo executa o conteúdo reconstruído com as permissões do processo Python. Leia o código original ou decodificado antes de executar um arquivo recebido de terceiros.
 
-```bash
-python interpreter.py meu_script.binpy
-```
+Para incorporar o interpretador em outro código Python, a função disponível é `run_binpy(filepath, context=None)`. Quando fornecido, `context` é passado como dicionário de globais para `exec()`; ele não cria um ambiente isolado.
 
-### 3. Rodar o servidor Flask ofuscado
+## Formato e limites atuais
 
-```bash
-python app.py
-```
+- O compilador concatena `format(ord(caractere), '08b')` para cada caractere, sem separadores.
+- O interpretador remove espaços, quebras de linha e tabulações, exige comprimento múltiplo de oito e converte cada grupo com `int(bloco, 2)`.
+- A largura `08b` é mínima, não um codificador UTF-8. Caracteres com valor acima de 255 podem produzir mais de oito bits e quebrar a reconstrução. Use ASCII nos exemplos até existir um contrato de codificação Unicode.
+- Bits inválidos causam erro na conversão; exceções do Python executado também são propagadas.
 
-> ⚠️ `app_logic.py` e `compilator.py` devem ser **removidos do servidor de produção** após a compilação.
+## Extensão para VS Code
 
----
+O manifesto em [binpy-extension/package.json](./binpy-extension/package.json) declara VS Code `^1.75.0` e reconhece `.binpy` e `.binhtml`. O código oferece:
 
-## Fluxo Completo
+- Cores alternadas para grupos de oito bits e informações do byte ao passar o mouse.
+- Barra de status com posição e total de bytes.
+- Comandos `BinPy: Decode File to Python`, `Decode Selection`, `Encode Selection to Binary` e `Show Decoded Preview`.
+- Atalhos `Ctrl+Shift+B D` para decodificar e `Ctrl+Shift+B P` para prévia.
 
-```
-app_logic.py  ──►  compilator.py  ──►  app.binpy
-                                            │
-                   Python Runtime  ◄──  interpreter.py  (exec)
-                                            ▲
-                                       app.py  (bootstrap)
-```
+Os comandos abrem texto decodificado no editor; não executam o Python. A extensão descarta caracteres diferentes de `0` e `1` ao decodificar, enquanto o interpretador remove apenas os espaços em branco descritos acima. Portanto, uma prévia no editor não valida o arquivo para execução.
 
----
+O repositório contém o código-fonte da extensão, sem pacote `.vsix` ou configuração de lançamento incluídos. Não há aplicativo web ou runtime JavaScript distribuído aqui.
 
-## Extensão VSCode
+## Licença
 
-A pasta [`binpy-extension/`](./binpy-extension) contém uma extensão completa para VSCode com:
-
-| Recurso | Descrição |
-|---|---|
-| 🎨 Syntax Highlighting | Bytes alternados em azul/violeta |
-| 🔍 Hover Decoder | Bits → decimal → hex → char ao passar o mouse |
-| 📊 Status Bar | `Byte X / Y` em tempo real |
-| ⚡ Decode File | `Ctrl+Shift+B D` — abre Python decodificado |
-| 👁 Preview | `Ctrl+Shift+B P` — popup com conteúdo |
-| ✂️ Decode/Encode Selection | Converte trechos selecionados |
-
-**Para usar:** Abra a pasta `binpy-extension/` no VSCode e pressione `F5`.
-
----
-
-## Estratégias de Ofuscação
-
-1. **Back-end** — Toda lógica Flask vive no `.binpy`; apenas o loader e o interpretador ficam visíveis
-2. **Front-end** — HTML convertido em binário; script JS decodifica e injeta via `document.write()` em runtime
-3. **Planejado: Cifra XOR** — Camada extra sobre o binário, ilegível por conversores ASCII online
-
----
-
-## Changelog
-
-| Versão | O que mudou |
-|---|---|
-| v0.1 | Prova de conceito: `exec()` de string binária inline |
-| v0.2 | `interpreter.py` como script CLI standalone |
-| v0.3 | `compilator.py`: conversão `.py → .binpy` automática |
-| v0.4 | Integração com Flask via `exec(code, globals())` |
-| v0.5 | Ofuscação de templates HTML via JavaScript |
-| v0.6 *(planejado)* | Cifra XOR sobre o binário |
-| v0.7 *(planejado)* | Script `build.py` automatizando compilação + limpeza |
-
----
-
-## Aviso de Segurança
-
-> **Segurança por Obscuridade ≠ Segurança Real.**  
-> BinPy é uma camada de disfarce, não criptografia. Qualquer pessoa com acesso ao `interpreter.py` consegue reverter o binário. Use em conjunto com práticas reais de segurança (SSL, autenticação, firewalls).
-
----
-
-<div align="center">
-Feito com 01100001 01101101 01101111 01110010 &nbsp;·&nbsp; <em>amor em binário</em>
-</div>
+Não há arquivo `LICENSE` na árvore atual. Este README não atribui uma licença que o repositório não declara.
